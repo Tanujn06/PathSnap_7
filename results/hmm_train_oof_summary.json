@@ -1,0 +1,16 @@
+{
+  "method": "5-fold GroupKFold OOF",
+  "model": "HistGradientBoostingClassifier",
+  "hmm_params": {
+    "sigma_m": 12.5,
+    "lambda_per_hop": 2.0,
+    "epsilon": 50.0,
+    "w": 1.0,
+    "gap_threshold_s": 5.0
+  },
+  "baseline_top1": 0.7772590527644098,
+  "hmm_top1": 0.8183785391786659,
+  "delta_percentage_points": 4.111948641425611,
+  "n_observations": 208417,
+  "truth_coverage": 0.9225255137536765
+}

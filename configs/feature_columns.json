@@ -1,0 +1,17 @@
+{
+  "feature_columns": [
+    "dist_m",
+    "along_frac",
+    "cand_rank",
+    "dist_minus_min",
+    "arc_length",
+    "gps_heading",
+    "heading_cos",
+    "speed_mps",
+    "dt_s",
+    "n_within_20m",
+    "arc_in_degree",
+    "arc_out_degree",
+    "has_reverse_arc"
+  ]
+}

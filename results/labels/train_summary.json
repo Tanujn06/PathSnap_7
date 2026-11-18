@@ -1,0 +1,8 @@
+{
+  "split": "train",
+  "n_trips": 80,
+  "n_obs": 208417,
+  "median_ref_dist_m": 5.666594754389457,
+  "p95_ref_dist_m": 141.2729917245377,
+  "n_above_50m": 23272
+}

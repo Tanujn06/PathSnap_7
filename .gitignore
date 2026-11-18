@@ -1,0 +1,20 @@
+# Raw trip data and regenerated parquet cache are NEVER committed
+data/
+data_cache/
+!data_cache/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Tooling / OS
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+
+# Raw PathSnap dataset
+/Student folder/
