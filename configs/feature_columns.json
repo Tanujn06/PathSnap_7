@@ -1,0 +1,4 @@
+{
+  "feature_columns": [],
+  "note": "Frozen by FEAT-01; features_{split} parquet files store feature columns in exactly this order."
+}
