@@ -1,10 +1,11 @@
-// ================== CONFIG (change these two lines only) ==================
-// Laptop 1's IP address and port where the FastAPI server runs.
-const API_BASE = "http://127.0.0.1:8000";
-// true  = read ui/mock/*.json (no backend needed, for UI-01)
-// false = call the real API at API_BASE (UI-02 / UI-03 / demo)
-const USE_MOCK = true;
-// ==========================================================================
+// ================== CONFIG ==================
+// Default: Laptop 1's FastAPI server. On demo day either edit this line or
+// open the page with ?api=http://<laptop-1-ip>:8000 (no code change).
+// ?mock=1 uses ui/mock/*.json instead (offline fallback, no backend needed).
+const params   = new URLSearchParams(window.location.search);
+const API_BASE = (params.get("api") || "http://127.0.0.1:8000").replace(/\/+$/, "");
+const USE_MOCK = params.get("mock") === "1";
+// ============================================
 
 const tripSelect = document.getElementById("tripSelect");
 const predictBtn = document.getElementById("predictBtn");
@@ -52,6 +53,11 @@ async function getJSON(url, options) {
 }
 
 // ---------- API calls (mock or real) ----------
+async function fetchHealth() {
+  if (USE_MOCK) return { status: "ok", mock: true };
+  return getJSON(`${API_BASE}/health`);
+}
+
 async function fetchTrips() {
   const data = USE_MOCK
     ? await getJSON("mock/trips.json")
@@ -104,6 +110,17 @@ function drawResult(r) {
   document.getElementById("m_seq").textContent  = fmt(m.sequence_f1);
   document.getElementById("m_lat").textContent  =
     (typeof r.latency_ms === "number") ? `${Math.round(r.latency_ms)} ms` : "–";
+
+  // The API marks stub/passthrough answers with mock=true and a warning:
+  // say so on screen instead of presenting them as model output.
+  setMockBadge(USE_MOCK || r.mock === true);
+  const warn = document.getElementById("warning");
+  warn.textContent = r.warning || "";
+  warn.style.display = r.warning ? "block" : "none";
+}
+
+function setMockBadge(on) {
+  document.getElementById("mockBadge").style.display = on ? "inline" : "none";
 }
 
 // ---------- Event handlers ----------
@@ -123,12 +140,22 @@ predictBtn.addEventListener("click", async () => {
 });
 
 async function init() {
-  if (USE_MOCK) document.getElementById("mockBadge").style.display = "inline";
+  setMockBadge(USE_MOCK);
+  document.getElementById("apiInfo").textContent = USE_MOCK ? "mock files" : API_BASE;
   try {
+    const health = await fetchHealth();
+    setMockBadge(USE_MOCK || health.mock === true);
     const trips = await fetchTrips();
+    if (!trips || !trips.length) throw new Error("API returned no trips. Check EVAL_DATA_DIR on Laptop 1.");
     tripSelect.innerHTML = trips.map(t => `<option value="${t}">${t}</option>`).join("");
     predictBtn.disabled = false;
     setStatus("", "");
+    // ?trip=<id> opens that trip straight away (handy for UI-03 screenshots).
+    const wanted = params.get("trip");
+    if (wanted && trips.includes(wanted)) {
+      tripSelect.value = wanted;
+      predictBtn.click();
+    }
   } catch (e) {
     tripSelect.innerHTML = "<option>Could not load trips</option>";
     setStatus("error", e.message);

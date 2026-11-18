@@ -25,8 +25,18 @@ scripts/run_ui.sh          # serves ui/ on http://localhost:5500
 scripts/run_ui.sh 6000     # or pick another port
 ```
 
-Set `API_BASE` at the top of `ui/app.js` to Laptop 1's IP and API port, and
-`USE_MOCK = false` to call the real API.
+The UI calls the real API at `http://127.0.0.1:8000` by default. No code
+change is needed for the demo; pass options in the URL:
+
+| URL | Effect |
+|---|---|
+| `http://localhost:5500/?api=http://<laptop-1-ip>:8000` | Use Laptop 1's API |
+| `...&trip=00000052` | Open that trip straight away (UI-03 screenshots) |
+| `http://localhost:5500/?mock=1` | Offline fallback: read `ui/mock/*.json`, no backend |
+
+When the API answers with `"mock": true` (the API-01 stub), the page shows a
+MOCK DATA badge and the API's warning, so stub output is never presented as
+a model prediction.
 
 ## Layout
 
