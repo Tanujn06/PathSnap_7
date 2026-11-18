@@ -1,0 +1,12 @@
+{
+  "runtime_sklearn": "1.7.2",
+  "runtime_python": "3.10.12",
+  "candidate_rows": 155598,
+  "max_abs_probability_difference": 0.0,
+  "probabilities_bit_identical": true,
+  "reload_warnings": [],
+  "original_sha256": "35390e5ed01d3e8c00ea00e06bf6c36a33d80329585a6831bd666c5f13565df9",
+  "resave_sha256": "70bafff250c5d9dc90c8eea8630a49e0adb2091949ce8782e7bf0a819c07859d",
+  "scope": "same sklearn1.7.2 runtime, original loaded versus accepted resave; not original1.9.1 execution equivalence",
+  "model_retrained": false
+}
