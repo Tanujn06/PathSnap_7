@@ -1,0 +1,28 @@
+{
+  "model": "logistic_regression",
+  "family": "Linear",
+  "seed": 42,
+  "row_cap": 300000,
+  "training_rows": 300000,
+  "feature_columns": [
+    "dist_m",
+    "along_frac",
+    "cand_rank",
+    "dist_minus_min",
+    "arc_length",
+    "gps_heading",
+    "heading_cos",
+    "speed_mps",
+    "dt_s",
+    "n_within_20m",
+    "arc_in_degree",
+    "arc_out_degree",
+    "has_reverse_arc"
+  ],
+  "parameters": {
+    "C": 1.0,
+    "class_weight": "balanced",
+    "max_iter": 1000,
+    "random_state": 42
+  }
+}\n
