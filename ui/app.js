@@ -104,10 +104,10 @@ function drawResult(r) {
   const m = r.metrics || {};
   document.getElementById("m_trip").textContent = r.trip_id ?? "–";
   document.getElementById("m_nobs").textContent = r.n_obs ?? r.gps.length;
-  document.getElementById("m_top1").textContent = fmt(m.top1);
-  document.getElementById("m_f1").textContent   = fmt(m.macro_f1);
-  document.getElementById("m_cont").textContent = fmt(m.route_continuity);
-  document.getElementById("m_seq").textContent  = fmt(m.sequence_f1);
+  document.getElementById("m_top1").textContent = fmt(m.top1) === "–" ? "N/A" : fmt(m.top1);
+  document.getElementById("m_f1").textContent = fmt(m.macro_f1) === "–" ? "N/A" : fmt(m.macro_f1);
+  document.getElementById("m_cont").textContent = fmt(m.route_continuity) === "–" ? "N/A" : fmt(m.route_continuity);
+  ocument.getElementById("m_seq").textContent = fmt(m.sequence_f1) === "–" ? "N/A" : fmt(m.sequence_f1);
   document.getElementById("m_lat").textContent  =
     (typeof r.latency_ms === "number") ? `${Math.round(r.latency_ms)} ms` : "–";
 

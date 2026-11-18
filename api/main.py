@@ -22,7 +22,9 @@ import numpy as np
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
-from pathsnap.pipeline import Predictor
+from pathsnap.pipeline import Predictor, load_prediction_trip
+from pathsnap.graph import RoadGraph
+from pathsnap.evaluate import route_continuity, sequence_level_f1
 
 
 class PredictionRequest(BaseModel):
@@ -128,6 +130,47 @@ def create_app(data_dir=None, log_path=None, predictor=None):
         except RuntimeError:
             logger.exception("Prediction runtime unavailable")
             raise HTTPException(503, "Prediction model/runtime unavailable")
+
+        # Reference-based metrics are calculated only AFTER prediction.
+        # The .route file is never passed into the model or inference pipeline.
+        result["metrics"] = {
+            "top1": None,
+            "macro_f1": None,
+            "route_continuity": None,
+            "sequence_f1": None,
+        }
+
+        try:
+            trip = load_prediction_trip(path.parent)
+            graph = RoadGraph(trip.nodes, trip.arcs)
+            reference_path = path.parent / f"{body.trip_id}.route"
+            reference_route = np.loadtxt(
+                reference_path, dtype=np.int64, ndmin=1
+            )
+            predicted_arcs = np.asarray(
+                result["predicted_arcs"], dtype=np.int64
+            )
+
+            if (
+                (reference_route < 0).any()
+                or (reference_route >= len(trip.arcs)).any()
+            ):
+                raise ValueError("Reference route contains invalid arc IDs")
+
+            result["metrics"]["route_continuity"] = route_continuity(
+                predicted_arcs, graph
+            )
+            result["metrics"]["sequence_f1"] = sequence_level_f1(
+                predicted_arcs, reference_route
+            )
+        except (OSError, ValueError, IndexError) as exc:
+            logger.warning(
+                "Reference evaluation unavailable for trip %s: %s",
+                body.trip_id, exc
+            )
+            result.setdefault("warnings", []).append(
+                "Reference route metrics unavailable"
+            )
 
         return result
 
