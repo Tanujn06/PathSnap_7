@@ -1,11 +1,90 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>PathSnap</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PathSnap Evaluator</title>
+  <!-- Leaflet is stored locally in vendor/ so the page works without a CDN -->
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+           background: #f4f5f7; color: #1d2433; height: 100vh; display: flex; flex-direction: column; }
+    header { background: #1f3a68; color: #fff; padding: 12px 20px; display: flex;
+             align-items: center; gap: 16px; flex-wrap: wrap; }
+    header h1 { font-size: 20px; margin: 0; }
+    header .sub { font-size: 13px; opacity: .8; }
+    main { flex: 1; display: flex; min-height: 0; }
+    #sidebar { width: 320px; padding: 16px; background: #fff; border-right: 1px solid #dde1e7;
+               overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+    #map { flex: 1; }
+    label { font-weight: 600; font-size: 14px; }
+    select, button { width: 100%; padding: 10px; font-size: 15px; border-radius: 6px; }
+    select { border: 1px solid #c3c9d3; background: #fff; }
+    button { background: #1f6feb; color: #fff; border: none; cursor: pointer; font-weight: 600; }
+    button:disabled { background: #9db7e0; cursor: wait; }
+    #status { font-size: 14px; padding: 8px 10px; border-radius: 6px; display: none; }
+    #status.loading { display: block; background: #fff6d6; color: #6b5300; }
+    #status.error   { display: block; background: #fde2e1; color: #8a1c17; }
+    #status.ok      { display: block; background: #e3f6e8; color: #1c5d2c; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    td { padding: 6px 4px; border-bottom: 1px solid #eef0f3; }
+    td.v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .legend { font-size: 13px; line-height: 1.8; }
+    .sw { display: inline-block; width: 14px; height: 4px; margin-right: 6px; vertical-align: middle; }
+    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+    .mockbadge { background: #ffb020; color: #000; font-size: 12px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+    @media (max-width: 760px) {
+      main { flex-direction: column; }
+      #sidebar { width: 100%; border-right: none; border-bottom: 1px solid #dde1e7; }
+      #map { min-height: 60vh; }
+    }
+  </style>
 </head>
 <body>
-  <h1>PathSnap</h1>
-  <p>UI skeleton placeholder (UI-01, owner: Sinchana).</p>
+  <header>
+    <h1>PathSnap</h1>
+    <span class="sub">Map-matching &amp; route reconstruction · Evaluator UI</span>
+    <span id="mockBadge" class="mockbadge" style="display:none">MOCK DATA</span>
+  </header>
+
+  <main>
+    <aside id="sidebar">
+      <div>
+        <label for="tripSelect">Evaluation trip</label>
+        <select id="tripSelect"><option>Loading trips…</option></select>
+      </div>
+
+      <button id="predictBtn" disabled>Predict route</button>
+
+      <div id="status"></div>
+
+      <div>
+        <label>Results</label>
+        <table id="metrics">
+          <tr><td>Trip</td><td class="v" id="m_trip">–</td></tr>
+          <tr><td>GPS observations</td><td class="v" id="m_nobs">–</td></tr>
+          <tr><td>Top-1 accuracy</td><td class="v" id="m_top1">–</td></tr>
+          <tr><td>Macro F1</td><td class="v" id="m_f1">–</td></tr>
+          <tr><td>Route continuity</td><td class="v" id="m_cont">–</td></tr>
+          <tr><td>Sequence-level F1</td><td class="v" id="m_seq">–</td></tr>
+          <tr><td>API latency</td><td class="v" id="m_lat">–</td></tr>
+        </table>
+      </div>
+
+      <div class="legend">
+        <label>Legend</label><br>
+        <span class="dot" style="background:#1f6feb"></span>Raw GPS observations<br>
+        <span class="sw" style="background:#e5383b"></span>Predicted route<br>
+        <span class="dot" style="background:#2b9348"></span>Start &nbsp;
+        <span class="dot" style="background:#111"></span>End
+      </div>
+    </aside>
+
+    <div id="map"></div>
+  </main>
+
+  <script src="vendor/leaflet.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
