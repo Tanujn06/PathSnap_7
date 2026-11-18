@@ -1,0 +1,26 @@
+{
+  "best_parameters": {
+    "note": "Selected using training-only 5-fold GroupKFold OOF predictions. Do not interpret the best grid score as an unbiased final estimate.",
+    "sigma_m": 12.5,
+    "lambda_per_hop": 4.0,
+    "epsilon": 100.0,
+    "w": 1.0,
+    "gap_threshold_s": 10.0
+  },
+  "best_training_oof_metrics": {
+    "lambda_per_hop": 4.0,
+    "epsilon": 100.0,
+    "gap_threshold_s": 10.0,
+    "hmm_top1": 0.8266696094848309,
+    "baseline_top1": 0.7772590527644098,
+    "delta_pp": 4.941055672042117,
+    "hmm_accuracy_known_truth": 0.8960940344307484,
+    "known_truth_observations": 192270,
+    "total_observations": 208417
+  },
+  "baseline_oof_top1": 0.7772590527644098,
+  "best_oof_top1": 0.8266696094848309,
+  "delta_percentage_points": 4.941055672042117,
+  "trials": 60,
+  "elapsed_seconds": 424.0351300239563
+}
