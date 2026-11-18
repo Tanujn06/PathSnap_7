@@ -1,0 +1,8 @@
+{
+  "split": "student_test",
+  "n_trips": 10,
+  "n_obs": 19160,
+  "median_ref_dist_m": 5.250845763479739,
+  "p95_ref_dist_m": 16.827807463726003,
+  "n_above_50m": 29
+}
