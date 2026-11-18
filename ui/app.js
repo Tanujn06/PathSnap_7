@@ -87,8 +87,10 @@ function drawResult(r) {
     }).bindTooltip(`GPS #${i}`).addTo(gpsLayer);
   });
 
-  if (r.predicted_path && r.predicted_path.length > 1) {
-    L.polyline(r.predicted_path, { color: "#e5383b", weight: 5, opacity: 0.85 })
+  // Prefer real road arcs as separate lines; keep flat fallback for mock/stub.
+  const route = r.predicted_segments || r.predicted_path;
+  if (route && route.length > 0) {
+    L.polyline(route, { color: "#e5383b", weight: 5, opacity: 0.85 })
       .addTo(routeLayer);
   }
 

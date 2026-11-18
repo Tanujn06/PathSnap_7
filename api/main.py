@@ -1,10 +1,11 @@
-"""API-01: development API skeleton, NOT a trained-model predictor.
+"""API-02: real reference-free model + HMM inference.
 
 Windows cmd (repository root):
+set PYTHONPATH=src
 set EVAL_DATA_DIR=C:\\path\\to\\trip_folders
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8000
 
-Only .track files are read. Reference routes never enter this stub or response.
+Reference routes are optional, server-side evaluation only after prediction.
 """
 import json
 import logging
@@ -21,6 +22,11 @@ import numpy as np
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
+from sklearn.metrics import f1_score
+from pathsnap.pipeline import Predictor
+from pathsnap.data_io import Trip
+from pathsnap.labels import align_route
+from pathsnap.evaluate import route_continuity, sequence_level_f1
 
 
 class PredictionRequest(BaseModel):
@@ -28,10 +34,10 @@ class PredictionRequest(BaseModel):
     trip_id: str = Field(min_length=1, max_length=100, pattern=r"^[A-Za-z0-9_-]+$")
 
 
-def create_app(data_dir=None, log_path=None):
+def create_app(data_dir=None, log_path=None, predictor_factory=Predictor):
     """Build an isolated app; env is read at startup, not per request.
 
-    EVAL_DATA_DIR must contain immediate trip folders, each with <id>.track.
+    EVAL_DATA_DIR must contain immediate trip folders, each with <id>.track/.nodes/.arcs.
     API_LOG_PATH defaults to api.log. Failure to open it fails startup rather
     than claiming to log requests that were never saved.
     """
@@ -50,14 +56,15 @@ def create_app(data_dir=None, log_path=None):
             handler.setFormatter(logging.Formatter("%(message)s"))
             logger.addHandler(handler)
         try:
+            app.state.predictor = predictor_factory()
             yield
         finally:
             for handler in handlers:
                 logger.removeHandler(handler)
                 handler.close()
 
-    app = FastAPI(title="PathSnap API-01 GPS stub", lifespan=lifespan,
-                  description="UI integration only. No road prediction or model scores.")
+    app = FastAPI(title="PathSnap API-02 model + HMM", lifespan=lifespan,
+                  description="Reference-free inference with optional post-prediction server evaluation.")
     # Development LAN testing only. No cookies/auth credentials are accepted.
     app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False,
                        allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
@@ -83,52 +90,74 @@ def create_app(data_dir=None, log_path=None):
             raise HTTPException(503, "Set EVAL_DATA_DIR to an existing folder containing trip folders")
         return root
 
-    def track_path(root, trip_id):
+    def trip_folder(root, trip_id):
         folder = root / trip_id
-        # Never follow a trip or track symlink outside the configured root.
         if folder.is_symlink() or not folder.is_dir():
             return None
-        path = folder / (trip_id + ".track")
-        if path.is_symlink() or not path.is_file():
-            return None
-        if not path.resolve().is_relative_to(root):
-            return None
-        return path
+        for ext in ('track', 'nodes', 'arcs'):
+            path = folder / (trip_id + '.' + ext)
+            if path.is_symlink() or not path.is_file() or not path.resolve().is_relative_to(root):
+                return None
+        return folder
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "prediction_mode": "gps_stub", "mock": True}
+        return {"status": "ok", "prediction_mode": "model_hmm", "mock": False,
+                "model_provenance": app.state.predictor.provenance}
 
     @app.get("/trips")
     def trips():
         root = root_dir()
         return {"trips": sorted(p.name for p in root.iterdir()
             if re.fullmatch(r"[A-Za-z0-9_-]{1,100}", p.name)
-            and track_path(root, p.name) is not None)}
+            and trip_folder(root, p.name) is not None)}
 
     @app.post("/predict")
     def predict(body: PredictionRequest, request: Request):
         start = time.perf_counter()
         request.state.trip_id = body.trip_id
-        path = track_path(root_dir(), body.trip_id)
-        if path is None:
-            raise HTTPException(404, "Trip track not found")
+        folder = trip_folder(root_dir(), body.trip_id)
+        if folder is None:
+            raise HTTPException(404, "Trip prediction inputs not found")
         try:
-            track = np.loadtxt(path, ndmin=2)
-        except (ValueError, OSError):
-            raise HTTPException(422, "Trip track is unreadable or malformed")
-        if track.size == 0 or track.shape[1] != 3 or not np.isfinite(track).all():
-            raise HTTPException(422, "Track must contain finite longitude, latitude, timestamp rows")
-        if (np.abs(track[:, 0]) > 180).any() or (np.abs(track[:, 1]) > 90).any():
-            raise HTTPException(422, "Track coordinates are out of range")
-        gps = track[:, [1, 0]].tolist()  # API/UI order is latitude, longitude.
-        return {"trip_id": body.trip_id, "n_obs": len(track), "gps": gps,
-                "predicted_arcs": [], "predicted_path": gps,
-                "metrics": {"top1": None, "macro_f1": None,
-                            "route_continuity": None, "sequence_f1": None},
-                "latency_ms": round((time.perf_counter()-start)*1000, 3),
-                "mock": True, "prediction_mode": "gps_stub",
-                "warning": "GPS passthrough only: no model or HMM prediction; metrics unavailable"}
+            result, trip, scored, graph = app.state.predictor.predict_trip(folder, return_details=True)
+        except (ValueError, OSError) as exc:
+            logger.warning(json.dumps({"event":"prediction_failed", "trip_id":body.trip_id,
+                                       "error_type":type(exc).__name__}))
+            raise HTTPException(422, "Trip inputs cannot produce a valid prediction") from exc
+        # No reference access occurs until prediction has returned in full.
+        result['metrics'] = dict(top1=None, macro_f1=None,
+                                route_continuity=route_continuity(result['predicted_arcs'], graph),
+                                sequence_f1=None)
+        result['evaluation_status'] = 'reference_unavailable'
+        reference = folder / (body.trip_id + '.route')
+        if reference.is_file() and not reference.is_symlink():
+            try:
+                raw = np.loadtxt(reference, ndmin=1)
+                if not np.isfinite(raw).all() or (raw != np.floor(raw)).any():
+                    raise ValueError('invalid reference arc indices')
+                route = raw.astype(np.int64)
+                labels = align_route(Trip(trip.trip_id, trip.track, trip.nodes, trip.arcs, route))
+                truth = labels.ref_arc.to_numpy()
+                predicted = np.asarray(result['predicted_arcs'])
+                result['metrics'].update(top1=float(np.mean(predicted == truth)),
+                    macro_f1=float(f1_score(truth, predicted, average='macro', zero_division=0)),
+                    sequence_f1=sequence_level_f1(predicted, route))
+                result['evaluation_status'] = 'reference_evaluated_after_prediction'
+            except (ValueError, OSError, IndexError):
+                result['evaluation_status'] = 'invalid_reference_ignored'
+        result['metric_semantics'] = {
+            'top1':'HMM arc accuracy, all observations, derived alignment labels',
+            'macro_f1':'HMM per-observation multiclass macro F1, union of truth/predicted arc classes',
+            'route_continuity':'whole-trip directed direct transitions after repeated arcs collapsed',
+            'sequence_f1':'arc-set overlap F1, ignores traversal order'}
+        # Keep the frozen flat predicted_path contract. Clients should prefer
+        # predicted_segments to render independent arcs without invented bridges.
+        result['warning'] = '; '.join(result['warnings'])
+        if result['evaluation_status'] != 'reference_evaluated_after_prediction':
+            result['warning'] += '; Reference metrics unavailable; prediction is still real model + HMM'
+        result['latency_ms'] = round((time.perf_counter()-start)*1000, 3)
+        return result
 
     return app
 
