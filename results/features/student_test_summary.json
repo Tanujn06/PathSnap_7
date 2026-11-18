@@ -1,0 +1,25 @@
+{
+  "n_observations": 19160,
+  "n_reference_in_candidates": 19114,
+  "n_missed": 46,
+  "n_empty_candidate_observations": 0,
+  "candidate_recall": 0.9975991649269311,
+  "candidate_miss_rate": 0.0024008350730688743,
+  "n_candidate_rows": 155598,
+  "n_positive_rows": 19114,
+  "feature_columns": [
+    "dist_m",
+    "along_frac",
+    "cand_rank",
+    "dist_minus_min",
+    "arc_length",
+    "gps_heading",
+    "heading_cos",
+    "speed_mps",
+    "dt_s",
+    "n_within_20m",
+    "arc_in_degree",
+    "arc_out_degree",
+    "has_reverse_arc"
+  ]
+}
