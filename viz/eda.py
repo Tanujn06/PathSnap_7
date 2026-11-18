@@ -233,11 +233,11 @@ def main():
     a = arcs.astype(np.int64)
     seg = [(a[i, 0], a[i, 1]) for i in range(len(a))
            if a[i, 0] in keep_set and a[i, 1] in keep_set]
-    MAX_SEG = 20000
+    MAX_SEG = 200
     if len(seg) > MAX_SEG:
         idx = np.random.RandomState(42).choice(len(seg), MAX_SEG, replace=False)
         seg = [seg[i] for i in idx]
-    fg_net = folium.FeatureGroup(name="road network (clipped 300 m)", show=True)
+    fg_net = folium.FeatureGroup(name="road network (300 m clip, up to 200 sampled arcs)", show=True)
     for u, v in seg:
         folium.PolyLine(
             [[nodes[u, 1], nodes[u, 0]], [nodes[v, 1], nodes[v, 0]]],
@@ -256,12 +256,14 @@ def main():
         fg_ref.add_to(m)
 
     fg_gps = folium.FeatureGroup(name="GPS observations", show=True)
-    for lo, la, _ in track[:: max(1, len(track) // 3000)]:
+    for lo, la, _ in track[:: max(1, len(track) // 100)]:
         folium.CircleMarker([la, lo], radius=2, color="blue",
                             fill=True, fill_opacity=0.7).add_to(fg_gps)
     fg_gps.add_to(m)
     folium.LayerControl().add_to(m)
     map_path = os.path.join(args.out, f"map_{map_partition}_{t['trip_id']}.html")
+    m.fit_bounds([[float(track[:, 1].min()), float(track[:, 0].min())],
+                  [float(track[:, 1].max()), float(track[:, 0].max())]])
     m.save(map_path)
 
     print("EDA summary:")
