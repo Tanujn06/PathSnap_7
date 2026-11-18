@@ -1,0 +1,36 @@
+{
+  "model": "hist_gradient_boosting",
+  "optimization_metric": "mean_grouped_top1_accuracy",
+  "best_top1_accuracy": 0.7735612338091322,
+  "best_macro_f1": 0.8997323857490948,
+  "best_log_loss": 0.11361293006689377,
+  "best_params": {
+    "learning_rate": 0.06433906280171042,
+    "max_iter": 150,
+    "max_leaf_nodes": 15,
+    "min_samples_leaf": 10,
+    "l2_regularization": 5.288619870179951
+  },
+  "feature_columns": [
+    "dist_m",
+    "along_frac",
+    "cand_rank",
+    "dist_minus_min",
+    "arc_length",
+    "gps_heading",
+    "heading_cos",
+    "speed_mps",
+    "dt_s",
+    "n_within_20m",
+    "arc_in_degree",
+    "arc_out_degree",
+    "has_reverse_arc"
+  ],
+  "seed": 42,
+  "study_name": "pathsnap_hist_gradient_boosting_top1",
+  "completed_trials": 20,
+  "training_rows": 1664104,
+  "training_trips": 80,
+  "trained_at_utc": "2026-11-18T07:32:41.469879+00:00",
+  "artifact": "models/final.joblib"
+}
