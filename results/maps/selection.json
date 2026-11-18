@@ -1,0 +1,66 @@
+{
+  "selection": "deterministic post-hoc illustration, not held-out model selection",
+  "reference_labels": "DATA-04 derived monotone alignment; all-observation denominator",
+  "continuity": "whole trip, collapsed adjacent repeats; includes cross-gap transitions",
+  "hmm_params": {
+    "sigma_m": 12.5,
+    "lambda_per_hop": 4.0,
+    "epsilon": 100.0,
+    "w": 1.0,
+    "gap_threshold_s": 10.0
+  },
+  "runtime_version_warnings": [],
+  "model_provenance": {
+    "artifact": "models/final_sklearn172.joblib",
+    "sha256": "70bafff250c5d9dc90c8eea8630a49e0adb2091949ce8782e7bf0a819c07859d",
+    "tested_sklearn": "1.7.2",
+    "original_artifact": "models/final.joblib",
+    "original_sha256": "35390e5ed01d3e8c00ea00e06bf6c36a33d80329585a6831bd666c5f13565df9",
+    "original_serialization_sklearn": "1.9.1",
+    "resave_not_retrain": true,
+    "original_runtime_equivalence_established": false,
+    "accepted_scope": "User selected final-model resave2026-11-18; same1.7.2probabilities verified bit-identical on155598studentcandidate rows",
+    "limitation": "Original1.9.1execution equivalence unproved. Resave preserves original fitted model, not original-runtime validation."
+  },
+  "maps": [
+    {
+      "case": "good",
+      "path": "good_00000052.html",
+      "trip_id": "00000052",
+      "n_obs": 262,
+      "baseline_top1": 0.9694656488549618,
+      "hmm_top1": 1.0,
+      "continuity": 0.8765432098765432,
+      "sequence_f1": 0.9265536723163842,
+      "runtime_ms": 146.256,
+      "version_mismatch": false,
+      "resaved_model": true
+    },
+    {
+      "case": "hmm_helped",
+      "path": "hmm_helped_00000091.html",
+      "trip_id": "00000091",
+      "n_obs": 874,
+      "baseline_top1": 0.8638443935926774,
+      "hmm_top1": 0.948512585812357,
+      "continuity": 0.856353591160221,
+      "sequence_f1": 0.8743961352657005,
+      "runtime_ms": 359.645,
+      "version_mismatch": false,
+      "resaved_model": true
+    },
+    {
+      "case": "failure",
+      "path": "failure_00000077.html",
+      "trip_id": "00000077",
+      "n_obs": 3911,
+      "baseline_top1": 0.747379186908719,
+      "hmm_top1": 0.828432625926873,
+      "continuity": 0.964516129032258,
+      "sequence_f1": 0.9467889908256881,
+      "runtime_ms": 912.876,
+      "version_mismatch": false,
+      "resaved_model": true
+    }
+  ]
+}
