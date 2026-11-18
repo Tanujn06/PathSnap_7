@@ -27,6 +27,9 @@
     #status.loading { display: block; background: #fff6d6; color: #6b5300; }
     #status.error   { display: block; background: #fde2e1; color: #8a1c17; }
     #status.ok      { display: block; background: #e3f6e8; color: #1c5d2c; }
+    #warning { display: none; font-size: 13px; padding: 8px 10px; border-radius: 6px;
+               background: #fff1e0; color: #7a3d00; }
+    .apiinfo { font-size: 12px; color: #5b6475; word-break: break-all; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     td { padding: 6px 4px; border-bottom: 1px solid #eef0f3; }
     td.v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -58,6 +61,8 @@
       <button id="predictBtn" disabled>Predict route</button>
 
       <div id="status"></div>
+      <div id="warning"></div>
+      <div class="apiinfo">API: <span id="apiInfo">–</span></div>
 
       <div>
         <label>Results</label>

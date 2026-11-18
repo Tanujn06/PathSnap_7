@@ -1,0 +1,25 @@
+{
+  "runtime_sklearn": "1.7.2",
+  "candidate_rows": 155598,
+  "all_probabilities_finite": true,
+  "candidate_macro_f1": 0.9262533868206582,
+  "top1_all_candidate_covered_observations": 0.8792797494780793,
+  "top1_all_reference_observations": 0.8792797494780793,
+  "hmm_top1_all_reference_observations": 0.9298538622129436,
+  "n_observations": 19160,
+  "candidate_observations": 19160,
+  "version_warnings": [],
+  "artifact_prediction_equivalence": "same-runtime original-loaded/resave bit-identical; original1.9.1equivalence not established",
+  "selected_model_provenance": {
+    "artifact": "models/final_sklearn172.joblib",
+    "sha256": "70bafff250c5d9dc90c8eea8630a49e0adb2091949ce8782e7bf0a819c07859d",
+    "tested_sklearn": "1.7.2",
+    "original_artifact": "models/final.joblib",
+    "original_sha256": "35390e5ed01d3e8c00ea00e06bf6c36a33d80329585a6831bd666c5f13565df9",
+    "original_serialization_sklearn": "1.9.1",
+    "resave_not_retrain": true,
+    "original_runtime_equivalence_established": false,
+    "accepted_scope": "User selected final-model resave2026-11-18; same1.7.2probabilities verified bit-identical on155598studentcandidate rows",
+    "limitation": "Original1.9.1execution equivalence unproved. Resave preserves original fitted model, not original-runtime validation."
+  }
+}

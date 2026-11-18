@@ -1,0 +1,25 @@
+{
+  "trip_id": "00000052",
+  "actual_model_prediction_without_route": true,
+  "invalid_reference_ignored": true,
+  "n_obs": 262,
+  "runtime_sklearn": "1.7.2",
+  "runtime_python": "3.10.12",
+  "cross_version_equivalence": false,
+  "all_suite_tests_passed": 57,
+  "model_sha256": "70bafff250c5d9dc90c8eea8630a49e0adb2091949ce8782e7bf0a819c07859d",
+  "config_sha256": "14a574115f0327ebac5f33897a39b64bf1e9a8779e5de9da75f281dba2ab1c53",
+  "original_model_sha256": "35390e5ed01d3e8c00ea00e06bf6c36a33d80329585a6831bd666c5f13565df9",
+  "model_provenance": {
+    "artifact": "models/final_sklearn172.joblib",
+    "sha256": "70bafff250c5d9dc90c8eea8630a49e0adb2091949ce8782e7bf0a819c07859d",
+    "tested_sklearn": "1.7.2",
+    "original_artifact": "models/final.joblib",
+    "original_sha256": "35390e5ed01d3e8c00ea00e06bf6c36a33d80329585a6831bd666c5f13565df9",
+    "original_serialization_sklearn": "1.9.1",
+    "resave_not_retrain": true,
+    "original_runtime_equivalence_established": false,
+    "accepted_scope": "User selected final-model resave2026-11-18; same1.7.2probabilities verified bit-identical on155598studentcandidate rows",
+    "limitation": "Original1.9.1execution equivalence unproved. Resave preserves original fitted model, not original-runtime validation."
+  }
+}
