@@ -94,9 +94,12 @@ scripts/run_ui.sh          # serves ui/ on http://localhost:5500
 scripts/run_ui.sh 6000     # or pick another port
 ```
 
-Set `API_BASE` at the top of `ui/app.js` to Laptop 1's IP and API port, and
-`USE_MOCK = false` to call the real API. Open `http://localhost:5500`, pick
-one of the ten trips, and the decoded route is drawn on the Leaflet map.
+By default the UI calls the API at `http://127.0.0.1:8000`. To point it at
+Laptop 1 without editing code, open
+`http://localhost:5500/?api=http://<laptop-1-ip>:8000`; `?mock=1` forces the
+offline mock files instead. Pick one of the ten trips and the decoded route is
+drawn on the Leaflet map. Stub or mock responses are always labelled on
+screen.
 
 ## Running the tests
 
