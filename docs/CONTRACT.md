@@ -26,8 +26,53 @@ contract so branches merge without rewriting each other's assumptions.
 
 ## API reference
 
+The API runs the reference-free model + HMM prediction pipeline. Set
+`EVAL_DATA_DIR` to the directory containing the trip folders before starting
+the server.
+
+Each trip requires:
+- `.track`: GPS observations
+- `.nodes`: road-network nodes
+- `.arcs`: road-network arcs
+
+The reference `.route` file is not read during prediction.
+
 | Method | Path | Purpose | Backed by |
 | --- | --- | --- | --- |
-| GET | `/health` | Returns `{status: ok}` | API-01 |
-| GET | `/trips` | Lists the trip ids found in `EVAL_DATA_DIR` (the 10 evaluator trips at the demo) | API-01 |
-| POST | `/predict` | Body `{trip_id}`. Runs the full pipeline. Response: `trip_id, n_obs, gps` `[[lat,lon],..]`, `predicted_arcs`, `predicted_path` `[[lat,lon],..]`, `metrics` `{top1, macro_f1, route_continuity, sequence_f1}`, `latency_ms`. The reference route is NOT in the response. | API-01 (stub), API-02 (real) |
+| GET | `/health` | Returns service status, `prediction_mode: model_hmm`, and `mock: false` when the real predictor is available. | API-02 |
+| GET | `/trips` | Lists trip IDs with available `.track` files under `EVAL_DATA_DIR`. | API-02 |
+| POST | `/predict` | Accepts `{ "trip_id": "<trip_id>" }` and runs model-based prediction followed by HMM decoding. | API-02 |
+
+### Prediction response
+
+The prediction response includes:
+- `trip_id`: requested trip identifier.
+- `n_obs`: number of GPS observations.
+- `gps`: GPS coordinates in `[lat, lon]` order.
+- `predicted_arcs`: predicted road-arc identifiers.
+- `predicted_path`: predicted path endpoint coordinates in run order.
+- `predicted_segments`: individual predicted road segments.
+- `path_semantics`: describes how the predicted path should be interpreted.
+- `metrics`: prediction evaluation metrics, including `top1`, `macro_f1`,
+  `route_continuity`, and `sequence_f1` when available.
+- `latency_ms`: prediction latency.
+- `prediction_mode`: `model_hmm`.
+- `mock`: `false`.
+
+Additional diagnostic metadata may include `warnings`, `model_provenance`,
+and `hmm_params`.
+
+**Rendering note:** Render `predicted_segments` as individual segments.
+Do not assume `predicted_path` is one connected polyline: its endpoint pairs
+are ordered prediction output and may be spatially disconnected.
+
+### Error responses
+
+| HTTP status | Meaning |
+| --- | --- |
+| 404 | Requested trip or its `.track` file was not found. |
+| 422 | Invalid request body or invalid prediction input, including malformed trip data or sidecar errors. |
+| 503 | `EVAL_DATA_DIR` is missing or invalid, or the prediction model/runtime is unavailable. |
+
+The reference route is not included in the prediction response and is not used
+as an inference input.

@@ -27,8 +27,7 @@ Python 3.11+, CPU only (no GPU libraries, no LightGBM/XGBoost).
 pip install -r requirements.txt
 ```
 
-Stack: numpy, pandas, scipy, pyarrow, scikit-learn, optuna, fastapi, uvicorn,
-folium, matplotlib, joblib, pytest.
+Stack: numpy, pandas, scipy, pyarrow, scikit-learn (pinned to 1.7.2), optuna, fastapi, uvicorn, folium, matplotlib, joblib, pytest and httpx2.
 
 ## Dataset setup
 
@@ -107,8 +106,8 @@ screen.
 PYTHONPATH=src python -m pytest tests/ -q
 ```
 
-46 tests cover loaders, candidates, graph, labels, features, models,
-metrics and the decoder.
+62 tests cover loaders, candidates, graph, labels, features, models,
+metrics, the decoder, and API endpoints.
 
 ## Layout
 

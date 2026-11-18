@@ -1,10 +1,11 @@
-"""API-01: development API skeleton, NOT a trained-model predictor.
+"""API-02: reference-free model + HMM prediction API.
 
-Windows cmd (repository root):
-set EVAL_DATA_DIR=C:\\path\\to\\trip_folders
-python -m uvicorn api.main:app --host 0.0.0.0 --port 8000
+Run from the repository root:
+export EVAL_DATA_DIR=/path/to/trip_folders
+PYTHONPATH=src uvicorn api.main:app --host 0.0.0.0 --port 8000
 
-Only .track files are read. Reference routes never enter this stub or response.
+Inference requires .track, .nodes, and .arcs files per trip.
+The reference .route file is not read during prediction.
 """
 import json
 import logging
