@@ -21,6 +21,7 @@ import numpy as np
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
+from pathsnap.pipeline import Predictor
 
 
 class PredictionRequest(BaseModel):
@@ -28,7 +29,7 @@ class PredictionRequest(BaseModel):
     trip_id: str = Field(min_length=1, max_length=100, pattern=r"^[A-Za-z0-9_-]+$")
 
 
-def create_app(data_dir=None, log_path=None):
+def create_app(data_dir=None, log_path=None, predictor=None):
     """Build an isolated app; env is read at startup, not per request.
 
     EVAL_DATA_DIR must contain immediate trip folders, each with <id>.track.
@@ -43,6 +44,7 @@ def create_app(data_dir=None, log_path=None):
     async def lifespan(app):
         configured = data_dir if data_dir is not None else os.environ.get("EVAL_DATA_DIR")
         app.state.data_dir = Path(configured).expanduser().resolve() if configured else None
+        app.state.predictor = predictor if predictor is not None else Predictor()
         target = Path(log_path if log_path is not None else os.environ.get("API_LOG_PATH", "api.log"))
         target.parent.mkdir(parents=True, exist_ok=True)
         handlers = [logging.StreamHandler(sys.stdout), logging.FileHandler(target, encoding="utf-8")]
@@ -56,8 +58,8 @@ def create_app(data_dir=None, log_path=None):
                 logger.removeHandler(handler)
                 handler.close()
 
-    app = FastAPI(title="PathSnap API-01 GPS stub", lifespan=lifespan,
-                  description="UI integration only. No road prediction or model scores.")
+    app = FastAPI(title="PathSnap API-02 Model Predictor", lifespan=lifespan,
+                  description="Reference-free road prediction using the trained model and HMM.")
     # Development LAN testing only. No cookies/auth credentials are accepted.
     app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False,
                        allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
@@ -97,7 +99,12 @@ def create_app(data_dir=None, log_path=None):
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "prediction_mode": "gps_stub", "mock": True}
+        ready = getattr(app.state, "predictor", None) is not None
+        return {
+            "status": "ok" if ready else "unavailable",
+            "prediction_mode": "model_hmm" if ready else "unavailable",
+            "mock": False,
+        }
 
     @app.get("/trips")
     def trips():
@@ -108,27 +115,20 @@ def create_app(data_dir=None, log_path=None):
 
     @app.post("/predict")
     def predict(body: PredictionRequest, request: Request):
-        start = time.perf_counter()
         request.state.trip_id = body.trip_id
         path = track_path(root_dir(), body.trip_id)
         if path is None:
             raise HTTPException(404, "Trip track not found")
+
         try:
-            track = np.loadtxt(path, ndmin=2)
-        except (ValueError, OSError):
-            raise HTTPException(422, "Trip track is unreadable or malformed")
-        if track.size == 0 or track.shape[1] != 3 or not np.isfinite(track).all():
-            raise HTTPException(422, "Track must contain finite longitude, latitude, timestamp rows")
-        if (np.abs(track[:, 0]) > 180).any() or (np.abs(track[:, 1]) > 90).any():
-            raise HTTPException(422, "Track coordinates are out of range")
-        gps = track[:, [1, 0]].tolist()  # API/UI order is latitude, longitude.
-        return {"trip_id": body.trip_id, "n_obs": len(track), "gps": gps,
-                "predicted_arcs": [], "predicted_path": gps,
-                "metrics": {"top1": None, "macro_f1": None,
-                            "route_continuity": None, "sequence_f1": None},
-                "latency_ms": round((time.perf_counter()-start)*1000, 3),
-                "mock": True, "prediction_mode": "gps_stub",
-                "warning": "GPS passthrough only: no model or HMM prediction; metrics unavailable"}
+            result = app.state.predictor.predict_trip(path.parent)
+        except (ValueError, OSError) as exc:
+            raise HTTPException(422, f"Prediction input or processing error: {exc}")
+        except RuntimeError:
+            logger.exception("Prediction runtime unavailable")
+            raise HTTPException(503, "Prediction model/runtime unavailable")
+
+        return result
 
     return app
 
